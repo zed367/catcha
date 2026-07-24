@@ -19,6 +19,7 @@ const ui = {
   phase: 'idle',
   processing: false,
   modalOpen: false,
+  enteringCapsuleId: null,
 }
 
 const els = {
@@ -81,7 +82,8 @@ function render() {
   renderMachines(ui.machineId, locked)
   renderModalMachine(ui.machineId)
   renderInventory(view)
-  renderCapsules(ui.purchase)
+  renderCapsules(ui.purchase, ui.enteringCapsuleId)
+  ui.enteringCapsuleId = null
   els.drawButtons.forEach((button) => {
     const count = Number(button.dataset.drawCount)
     const selected = count === ui.drawCount
@@ -133,8 +135,9 @@ async function startDispensing(purchase) {
     engine,
     purchase,
     onStatus: showToast,
-    onCapsule(nextPurchase) {
+    onCapsule(nextPurchase, capsuleId) {
       ui.purchase = nextPurchase
+      ui.enteringCapsuleId = capsuleId
       render()
     },
   })
@@ -173,7 +176,7 @@ async function revealOne(capsuleId) {
   ui.purchase = engine.updateCapsule(ui.purchase.purchaseId, capsuleId, 'opening')
   render()
   showToast('미스터리볼이 위아래로 열립니다…')
-  await wait(capsule.grade <= 2 ? 650 : 300)
+  await wait(capsule.grade <= 2 ? 820 : 500)
   ui.purchase = engine.updateCapsule(ui.purchase.purchaseId, capsuleId, 'revealed')
   ui.processing = false
   ui.phase = ui.purchase.status === 'completed' ? 'completed' : 'ready_to_open'
@@ -270,6 +273,7 @@ els.reset.addEventListener('click', () => {
   ui.phase = 'idle'
   ui.processing = false
   ui.modalOpen = false
+  ui.enteringCapsuleId = null
   handle.reset()
   render()
   showToast('데모 재고를 처음 상태로 되돌렸습니다.')

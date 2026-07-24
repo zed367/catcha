@@ -149,7 +149,7 @@ export function renderInventory(view) {
   `).join('')
 }
 
-export function renderCapsules(purchase) {
+export function renderCapsules(purchase, enteringCapsuleId = null) {
   const area = document.querySelector('#capsule-area')
   const visible = purchase?.capsules.filter((capsule) => capsule.status !== 'ready_to_dispense') ?? []
   if (!visible.length) {
@@ -161,7 +161,7 @@ export function renderCapsules(purchase) {
     const revealed = capsule.status === 'revealed'
     const opening = capsule.status === 'opening'
     return `
-      <button class="lotto-ball mystery-ball ${revealed ? `is-revealed grade-${meta.className}` : ''} ${opening ? `is-opening grade-${meta.className}` : ''}" type="button" data-capsule-id="${capsule.capsuleId}" ${(revealed || opening) ? 'disabled' : ''}>
+      <button class="lotto-ball mystery-ball ${capsule.capsuleId === enteringCapsuleId ? 'is-new' : ''} ${revealed ? `is-revealed grade-${meta.className}` : ''} ${opening ? `is-opening grade-${meta.className}` : ''}" type="button" data-capsule-id="${capsule.capsuleId}" ${(revealed || opening) ? 'disabled' : ''}>
         <span class="lotto-ball__sequence">RESULT ${String(index + 1).padStart(2, '0')}</span>
         <span class="mystery-ball__shell" aria-hidden="true"><i class="mystery-ball__half mystery-ball__half--top"></i><i class="mystery-ball__half mystery-ball__half--bottom"></i><b>?</b><span class="mystery-ball__note">${revealed ? meta.label : '…'}</span></span>
         <span class="lotto-ball__result">${revealed ? `${meta.label} · ${escapeHtml(capsule.prizeName)}` : opening ? '쪽지를 확인하는 중…' : '공을 눌러 결과 확인'}</span>

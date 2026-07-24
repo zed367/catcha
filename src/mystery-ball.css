@@ -95,6 +95,20 @@
   color: #7c6b54;
 }
 
+.mystery-ball.is-opening .mystery-ball__shell {
+  animation: mystery-grade-glow .48s ease-in-out infinite alternate;
+}
+
+.mystery-ball.is-opening .mystery-ball__half {
+  border-color: currentColor;
+  box-shadow: inset 7px 7px rgba(255,255,255,.55), inset -7px -6px rgba(38,61,79,.18), 0 0 19px currentColor;
+}
+
+.mystery-ball.is-opening.grade-gold { color: #ffd654; }
+.mystery-ball.is-opening.grade-violet { color: #c08bff; }
+.mystery-ball.is-opening.grade-blue { color: #7ec1ff; }
+.mystery-ball.is-opening.grade-green { color: #71eab0; }
+
 .mystery-ball.is-revealed .mystery-ball__note {
   color: #39231b;
   box-shadow: 0 0 20px currentColor, 0 3px 6px rgba(0,0,0,.27);
@@ -104,3 +118,23 @@
 .mystery-ball.is-revealed.grade-violet { color: #c08bff; }
 .mystery-ball.is-revealed.grade-blue { color: #7ec1ff; }
 .mystery-ball.is-revealed.grade-green { color: #71eab0; }
+
+/* Only the newly drawn ball moves: it rolls down from the machine instead of bouncing into place. */
+.lotto-ball {
+  animation: none;
+}
+
+.lotto-ball.is-new {
+  animation: mystery-ball-roll-down .68s cubic-bezier(.18,.84,.32,1) both;
+}
+
+@keyframes mystery-grade-glow {
+  from { filter: brightness(1); transform: scale(.98); }
+  to { filter: brightness(1.22); transform: scale(1.05); }
+}
+
+@keyframes mystery-ball-roll-down {
+  from { opacity: 0; transform: translate(-18px, -42px) rotate(-100deg) scale(.85); }
+  72% { opacity: 1; transform: translate(3px, 4px) rotate(26deg) scale(1); }
+  to { opacity: 1; transform: translate(0, 0) rotate(0); }
+}
