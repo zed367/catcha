@@ -2,14 +2,21 @@ import { wait } from './animationController.js'
 
 export async function dispenseRemaining({ engine, purchase, onCapsule, onStatus }) {
   const remaining = purchase.capsules.filter((capsule) => capsule.status === 'ready_to_dispense')
-  for (const capsule of remaining) {
-    onStatus(`미스터리볼 ${purchase.capsules.indexOf(capsule) + 1}번이 나옵니다.`)
-    await wait(520)
-    purchase = engine.updateCapsule(purchase.purchaseId, capsule.capsuleId, 'dispensed')
-    onCapsule(purchase, capsule.capsuleId)
-    await wait(250)
-  }
-  return purchase
+  const START_DELAY_MS = 120
+  const BALL_STAGGER_MS = 145
+
+  // Each result begins shortly after the previous one, but its rolling motion
+  // continues independently. This keeps 5/10 draws fast and rhythmic.
+  const draws = remaining.map(async (capsule, index) => {
+    await wait(START_DELAY_MS + index * BALL_STAGGER_MS)
+    const nextPurchase = engine.updateCapsule(purchase.purchaseId, capsule.capsuleId, 'dispensed')
+    onStatus(`미스터리볼 ${index + 1}번이 결과 트레이로 굴러갑니다.`)
+    onCapsule(nextPurchase, capsule.capsuleId)
+    return nextPurchase
+  })
+
+  const updatedPurchases = await Promise.all(draws)
+  return updatedPurchases.at(-1) ?? purchase
 }
 
 export async function revealEveryCapsule({ engine, purchase, onGlow, onReveal, onStatus }) {
