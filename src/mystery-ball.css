@@ -95,19 +95,21 @@
   color: #7c6b54;
 }
 
-.mystery-ball.is-opening .mystery-ball__shell {
-  animation: mystery-grade-glow .48s ease-in-out infinite alternate;
+.mystery-ball.is-opening.grade-gold { --prize-glow: #ffd654; color: #ffd654; }
+.mystery-ball.is-opening.grade-violet { --prize-glow: #c08bff; color: #c08bff; }
+.mystery-ball.is-opening.grade-blue { --prize-glow: #7ec1ff; color: #7ec1ff; }
+.mystery-ball.is-opening.grade-green { --prize-glow: #71eab0; color: #71eab0; }
+
+/* The light source is the paper note inside the opened shell, not the ball exterior. */
+.mystery-ball.is-opening .mystery-ball__note {
+  animation: note-glow .5s ease-in-out infinite alternate;
+  box-shadow: 0 0 10px #fff, 0 0 24px var(--prize-glow), 0 3px 6px rgba(0,0,0,.27);
 }
 
-.mystery-ball.is-opening .mystery-ball__half {
-  border-color: currentColor;
-  box-shadow: inset 7px 7px rgba(255,255,255,.55), inset -7px -6px rgba(38,61,79,.18), 0 0 19px currentColor;
+.mystery-ball.is-opening.grade-gold .mystery-ball__note {
+  animation: jackpot-note-glow .3s ease-in-out infinite alternate;
+  box-shadow: 0 0 15px #fff9cd, 0 0 34px #ffd654, 0 0 62px rgba(255,196,49,.82), 0 3px 6px rgba(0,0,0,.27);
 }
-
-.mystery-ball.is-opening.grade-gold { color: #ffd654; }
-.mystery-ball.is-opening.grade-violet { color: #c08bff; }
-.mystery-ball.is-opening.grade-blue { color: #7ec1ff; }
-.mystery-ball.is-opening.grade-green { color: #71eab0; }
 
 .mystery-ball.is-revealed .mystery-ball__note {
   color: #39231b;
@@ -120,21 +122,65 @@
 .mystery-ball.is-revealed.grade-green { color: #71eab0; }
 
 /* Only the newly drawn ball moves: it rolls down from the machine instead of bouncing into place. */
+.lotto-results__balls {
+  min-height: 139px;
+  display: block;
+  overflow-x: auto;
+}
+
+.lotto-results__track {
+  width: max(100%, 960px);
+  height: 122px;
+  position: relative;
+  padding: 13px 16px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.18));
+  box-shadow: inset 0 2px 8px rgba(0,0,0,.26);
+}
+
+.lotto-results__track::before {
+  content: '';
+  width: 48px;
+  height: 18px;
+  position: absolute;
+  left: 13px;
+  top: 0;
+  border: 3px solid #6f8cac;
+  border-top: 0;
+  border-radius: 0 0 14px 14px;
+  background: #d9ecf4;
+}
+
 .lotto-ball {
+  width: 88px;
+  min-height: 110px;
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  margin: 0;
   animation: none;
+  transform: translateX(var(--slot-x));
 }
 
 .lotto-ball.is-new {
-  animation: mystery-ball-roll-down .68s cubic-bezier(.18,.84,.32,1) both;
+  z-index: 4;
+  animation: mystery-ball-roll-to-slot .95s cubic-bezier(.18,.82,.3,1) both;
 }
 
-@keyframes mystery-grade-glow {
-  from { filter: brightness(1); transform: scale(.98); }
-  to { filter: brightness(1.22); transform: scale(1.05); }
+@keyframes note-glow {
+  from { filter: brightness(1); transform: scale(.96) rotate(-2deg); }
+  to { filter: brightness(1.15); transform: scale(1.04) rotate(-2deg); }
 }
 
-@keyframes mystery-ball-roll-down {
-  from { opacity: 0; transform: translate(-18px, -42px) rotate(-100deg) scale(.85); }
-  72% { opacity: 1; transform: translate(3px, 4px) rotate(26deg) scale(1); }
-  to { opacity: 1; transform: translate(0, 0) rotate(0); }
+@keyframes jackpot-note-glow {
+  from { filter: brightness(1); transform: scale(.95) rotate(-3deg); }
+  to { filter: brightness(1.4); transform: scale(1.12) rotate(-1deg); }
+}
+
+@keyframes mystery-ball-roll-to-slot {
+  0% { opacity: 0; transform: translate(0, -42px) rotate(-80deg) scale(.84); }
+  20% { opacity: 1; transform: translate(8px, 0) rotate(-16deg) scale(1); }
+  64% { transform: translate(var(--mid-slot-x), 2px) rotate(225deg); }
+  82% { transform: translate(calc(var(--slot-x) - 7px), 1px) rotate(390deg); }
+  100% { transform: translateX(var(--slot-x)) rotate(450deg); }
 }

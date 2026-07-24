@@ -156,18 +156,23 @@ export function renderCapsules(purchase, enteringCapsuleId = null) {
     area.innerHTML = '<p class="empty-capsules">손잡이를 돌리면 공이 이곳으로 굴러 나옵니다.</p>'
     return
   }
-  area.innerHTML = visible.map((capsule, index) => {
+  const slotGap = 94
+  const totalSlots = purchase.confirmedCount || purchase.requestedCount || visible.length
+  area.innerHTML = `<div class="lotto-results__track">${visible.map((capsule, index) => {
     const meta = GRADE_META[capsule.grade]
     const revealed = capsule.status === 'revealed'
     const opening = capsule.status === 'opening'
+    // Balls enter from the left chute and fill the rail from its far end back.
+    const slotIndex = Math.max(0, totalSlots - index - 1)
+    const targetX = slotIndex * slotGap
     return `
-      <button class="lotto-ball mystery-ball ${capsule.capsuleId === enteringCapsuleId ? 'is-new' : ''} ${revealed ? `is-revealed grade-${meta.className}` : ''} ${opening ? `is-opening grade-${meta.className}` : ''}" type="button" data-capsule-id="${capsule.capsuleId}" ${(revealed || opening) ? 'disabled' : ''}>
+      <button class="lotto-ball mystery-ball ${capsule.capsuleId === enteringCapsuleId ? 'is-new' : ''} ${revealed ? `is-revealed grade-${meta.className}` : ''} ${opening ? `is-opening grade-${meta.className}` : ''}" style="--slot-x: ${targetX}px; --mid-slot-x: ${Math.round(targetX / 2)}px" type="button" data-capsule-id="${capsule.capsuleId}" ${(revealed || opening) ? 'disabled' : ''}>
         <span class="lotto-ball__sequence">RESULT ${String(index + 1).padStart(2, '0')}</span>
         <span class="mystery-ball__shell" aria-hidden="true"><i class="mystery-ball__half mystery-ball__half--top"></i><i class="mystery-ball__half mystery-ball__half--bottom"></i><b>?</b><span class="mystery-ball__note">${revealed ? meta.label : '…'}</span></span>
         <span class="lotto-ball__result">${revealed ? `${meta.label} · ${escapeHtml(capsule.prizeName)}` : opening ? '쪽지를 확인하는 중…' : '공을 눌러 결과 확인'}</span>
       </button>
     `
-  }).join('')
+  }).join('')}</div>`
 }
 
 export function showToast(message) {
