@@ -7,8 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "npm run build && wrangler pages deploy dist --project-name catcha --branch main",
-    "deploy:preview": "npm run build && wrangler pages deploy dist --project-name catcha --branch preview"
+    "deploy": "npm run build && wrangler pages deploy dist --project-name catchacatcha --branch main",
+    "deploy:preview": "npm run build && wrangler pages deploy dist --project-name catchacatcha --branch preview"
   },
   "devDependencies": {
     "vite": "^8.1.1",
