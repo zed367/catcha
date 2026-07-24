@@ -1,0 +1,93 @@
+const STORAGE_KEY = 'catcha-kuji-demo-state-v1'
+
+export const MACHINES = Object.freeze([
+  {
+    id: 'machine_mint',
+    number: '01',
+    name: 'MINT POP',
+    posterTitle: 'NEON\nHEROES',
+    posterSubtitle: 'COLLECTIBLE KUJI',
+    theme: 'mint',
+    posterImageUrl: null,
+  },
+  {
+    id: 'machine_grape',
+    number: '02',
+    name: 'VIOLET POP',
+    posterTitle: 'STAR\nRUSH',
+    posterSubtitle: 'COLLECTIBLE KUJI',
+    theme: 'grape',
+    posterImageUrl: null,
+  },
+  {
+    id: 'machine_sunset',
+    number: '03',
+    name: 'SUNSET POP',
+    posterTitle: 'DREAM\nWAVE',
+    posterSubtitle: 'COLLECTIBLE KUJI',
+    theme: 'sunset',
+    posterImageUrl: null,
+  },
+])
+
+export const GRADE_META = Object.freeze({
+  1: { label: '1등', name: '황금 피규어 스페셜', glow: '#ffd54a', className: 'gold' },
+  2: { label: '2등', name: '아크릴 디오라마', glow: '#b781ff', className: 'violet' },
+  3: { label: '3등', name: '홀로그램 키체인', glow: '#63b6ff', className: 'blue' },
+  4: { label: '4등', name: '컬렉션 스티커', glow: '#5eeaa5', className: 'green' },
+})
+
+function freshState() {
+  return {
+    version: 1,
+    inventory: [
+      { grade: 1, total: 2, remaining: 2 },
+      { grade: 2, total: 4, remaining: 4 },
+      { grade: 3, total: 8, remaining: 8 },
+      { grade: 4, total: 16, remaining: 16 },
+    ],
+    purchases: [],
+  }
+}
+
+function clone(value) {
+  return JSON.parse(JSON.stringify(value))
+}
+
+function hasValidShape(value) {
+  return value && Array.isArray(value.inventory) && Array.isArray(value.purchases)
+}
+
+export function createInventoryStore() {
+  let state = load()
+
+  function load() {
+    try {
+      const saved = window.localStorage.getItem(STORAGE_KEY)
+      const parsed = saved ? JSON.parse(saved) : null
+      return hasValidShape(parsed) ? parsed : freshState()
+    } catch {
+      return freshState()
+    }
+  }
+
+  function save() {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+  }
+
+  return {
+    read() {
+      return clone(state)
+    },
+    write(nextState) {
+      state = clone(nextState)
+      save()
+      return this.read()
+    },
+    reset() {
+      state = freshState()
+      save()
+      return this.read()
+    },
+  }
+}
