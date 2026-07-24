@@ -38,12 +38,14 @@ function chooseInventory(inventory) {
   return inventory.at(-1)
 }
 
-function makeCapsule(inventoryItem, index) {
+function makeCapsule(inventoryItem, index, lottoNumber) {
   const meta = GRADE_META[inventoryItem.grade]
   return {
     capsuleId: id('capsule'),
     drawResultId: id('result'),
     prizeId: `prize_grade_${inventoryItem.grade}_${index + 1}`,
+    // Visual-only lottery number. It never changes the weighted prize result.
+    lottoNumber,
     grade: inventoryItem.grade,
     prizeName: meta.name,
     status: 'ready_to_dispense',
@@ -112,10 +114,16 @@ export function createCatchaEngine(store) {
 
     // Production: this block becomes a DB transaction with a purchaseId idempotency key.
     const capsules = []
+    const usedLottoNumbers = new Set()
     for (let index = 0; index < purchase.requestedCount; index += 1) {
       const prize = chooseInventory(current.inventory)
       prize.remaining -= 1
-      capsules.push(makeCapsule(prize, index))
+      let lottoNumber
+      do {
+        lottoNumber = Math.floor(Math.random() * 45) + 1
+      } while (usedLottoNumbers.has(lottoNumber))
+      usedLottoNumbers.add(lottoNumber)
+      capsules.push(makeCapsule(prize, index, lottoNumber))
     }
 
     purchase.status = 'draw_committed'

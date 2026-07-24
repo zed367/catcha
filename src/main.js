@@ -4,7 +4,7 @@ import { createCatchaEngine } from './catchaEngine.js'
 import { dispenseRemaining, revealEveryCapsule } from './capsuleController.js'
 import { attachHandleController } from './handleController.js'
 import { createInventoryStore, MACHINES } from './inventoryStore.js'
-import { createAppShell, renderCapsules, renderInventory, renderMachines, showToast } from './ui.js'
+import { createAppShell, renderCapsules, renderInventory, renderMachines, renderModalMachine, showToast } from './ui.js'
 
 const app = document.querySelector('#app')
 createAppShell(app)
@@ -17,6 +17,7 @@ const ui = {
   purchase: null,
   phase: 'idle',
   processing: false,
+  modalOpen: false,
 }
 
 const els = {
@@ -34,6 +35,9 @@ const els = {
   openAll: document.querySelector('#open-all'),
   capsuleArea: document.querySelector('#capsule-area'),
   reset: document.querySelector('#reset-demo'),
+  modal: document.querySelector('#draw-modal'),
+  modalClose: document.querySelector('#modal-close'),
+  lottoMachine: document.querySelector('#lotto-machine'),
 }
 
 function currentView() {
@@ -50,6 +54,21 @@ function purchaseIsOpen() {
   return ui.purchase && ui.purchase.status !== 'completed'
 }
 
+function openDrawModal() {
+  ui.modalOpen = true
+  render()
+  window.requestAnimationFrame(() => els.modalClose.focus())
+}
+
+function closeDrawModal() {
+  if (ui.processing || purchaseIsOpen()) {
+    showToast('진행 중인 추첨은 이 화면에서 완료해주세요.')
+    return
+  }
+  ui.modalOpen = false
+  render()
+}
+
 function render() {
   const view = currentView()
   const locked = purchaseIsOpen() || ui.processing
@@ -59,6 +78,7 @@ function render() {
   const dispensed = ui.purchase?.capsules.some((capsule) => capsule.status === 'dispensed')
 
   renderMachines(ui.machineId, locked)
+  renderModalMachine(ui.machineId)
   renderInventory(view)
   renderCapsules(ui.purchase)
   els.drawButtons.forEach((button) => {
@@ -78,25 +98,29 @@ function render() {
     : locked ? '진행 중인 캡슐을 먼저 완료해주세요' : '기계와 연차를 선택해주세요'
 
   els.turnPanel.dataset.status = ui.phase
+  els.modal.classList.toggle('is-open', ui.modalOpen)
+  els.modal.setAttribute('aria-hidden', String(!ui.modalOpen))
+  els.modalClose.disabled = ui.processing || purchaseIsOpen()
   els.turnState.textContent = {
     idle: '대기 중',
     paid_waiting_for_turn: '결제 완료',
     committing: '결과 확정 중',
-    dispensing: '캡슐 배출 중',
+    dispensing: '로또볼 추첨 중',
     ready_to_open: '개봉 준비 완료',
     completed: '완료',
   }[ui.phase] ?? '대기 중'
   els.turnHint.textContent = canTurn
     ? '시계 방향으로 약 3/4바퀴 돌리면 추첨이 확정됩니다.'
-    : ui.phase === 'dispensing' ? '기어가 돌아가고 캡슐이 나오는 중입니다.'
-    : ui.phase === 'ready_to_open' ? '캡슐을 탭해 하나씩 열거나 모두 열어보세요.'
-    : ui.phase === 'completed' ? '이번 쿠지를 모두 열었습니다. 다음 기계를 골라보세요.'
+    : ui.phase === 'dispensing' ? '투명 챔버에서 공이 섞이고, 한 개씩 추첨됩니다.'
+    : ui.phase === 'ready_to_open' ? '로또볼을 탭해 하나씩 열거나 모두 공개하세요.'
+    : ui.phase === 'completed' ? '이번 추첨을 모두 공개했습니다. 다음 기계를 골라보세요.'
     : '결제 후 손잡이를 돌릴 수 있습니다.'
   els.wheel.classList.toggle('is-enabled', canTurn)
   els.wheel.tabIndex = canTurn ? 0 : -1
   els.accessibleTurn.disabled = !canTurn
   els.openAll.disabled = !dispensed || ui.processing
   els.gear.classList.toggle('is-spinning', ui.phase === 'committing' || ui.phase === 'dispensing')
+  els.lottoMachine.classList.toggle('is-mixing', ui.phase === 'committing' || ui.phase === 'dispensing')
 }
 
 async function startDispensing(purchase) {
@@ -117,7 +141,7 @@ async function startDispensing(purchase) {
   ui.processing = false
   ui.phase = completedPurchase.status === 'completed' ? 'completed' : 'ready_to_open'
   render()
-  showToast('캡슐이 모두 나왔습니다. 하나씩 열어보세요!')
+  showToast('로또볼이 모두 나왔습니다. 하나씩 결과를 확인해보세요!')
 }
 
 async function commitFromHandle() {
@@ -125,7 +149,7 @@ async function commitFromHandle() {
   ui.processing = true
   ui.phase = 'committing'
   render()
-  showToast('손잡이 완료! 현재 재고 기준으로 결과를 확정합니다.')
+  showToast('손잡이 완료! 로또 추첨기에서 공을 섞습니다.')
   await wait(440)
   try {
     const purchase = engine.commitDraw(ui.purchase.purchaseId)
@@ -147,7 +171,7 @@ async function revealOne(capsuleId) {
   ui.processing = true
   ui.purchase = engine.updateCapsule(ui.purchase.purchaseId, capsuleId, 'opening')
   render()
-  showToast('캡슐에서 빛이 새어 나옵니다…')
+  showToast('로또볼에서 등급 빛이 새어 나옵니다…')
   await wait(capsule.grade <= 2 ? 650 : 300)
   ui.purchase = engine.updateCapsule(ui.purchase.purchaseId, capsuleId, 'revealed')
   ui.processing = false
@@ -162,10 +186,26 @@ const handle = attachHandleController(els.wheel, {
 })
 
 els.machineButtons.forEach((button) => button.addEventListener('click', () => {
-  if (purchaseIsOpen()) return
+  if (purchaseIsOpen()) {
+    openDrawModal()
+    return
+  }
+  if (ui.purchase?.status === 'completed') {
+    ui.purchase = null
+    ui.phase = 'idle'
+    handle.reset()
+  }
   ui.machineId = button.dataset.machineId
-  render()
+  openDrawModal()
 }))
+
+els.modalClose.addEventListener('click', closeDrawModal)
+els.modal.addEventListener('click', (event) => {
+  if (event.target.matches('[data-modal-close]')) closeDrawModal()
+})
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && ui.modalOpen) closeDrawModal()
+})
 
 els.drawButtons.forEach((button) => button.addEventListener('click', () => {
   if (purchaseIsOpen()) return
@@ -228,6 +268,7 @@ els.reset.addEventListener('click', () => {
   ui.purchase = null
   ui.phase = 'idle'
   ui.processing = false
+  ui.modalOpen = false
   handle.reset()
   render()
   showToast('데모 재고를 처음 상태로 되돌렸습니다.')
@@ -239,13 +280,14 @@ function resumeProgress() {
   ui.purchase = engine.recoverPurchase(view.activePurchase.purchaseId)
   ui.machineId = ui.purchase.machineId
   ui.drawCount = ui.purchase.requestedCount
+  ui.modalOpen = true
   if (ui.purchase.status === 'paid_waiting_for_turn') {
     ui.phase = 'paid_waiting_for_turn'
     showToast('이전 결제를 복원했습니다. 손잡이를 돌려 이어서 진행하세요.')
   } else if (ui.purchase.status === 'draw_committed') {
     ui.phase = 'ready_to_open'
     if (ui.purchase.capsules.some((capsule) => capsule.status === 'ready_to_dispense')) {
-      showToast('확정된 결과를 복원했습니다. 남은 캡슐을 이어서 배출합니다.')
+      showToast('확정된 결과를 복원했습니다. 남은 로또볼을 이어서 추첨합니다.')
       startDispensing(ui.purchase)
     } else {
       showToast('이전 캡슐 진행 상태를 복원했습니다.')
