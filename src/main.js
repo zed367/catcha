@@ -1,4 +1,5 @@
 import './style.css'
+import './mystery-ball.css'
 import { animateAccessibleTurn, wait } from './animationController.js'
 import { createCatchaEngine } from './catchaEngine.js'
 import { dispenseRemaining, revealEveryCapsule } from './capsuleController.js'
@@ -105,14 +106,14 @@ function render() {
     idle: '대기 중',
     paid_waiting_for_turn: '결제 완료',
     committing: '결과 확정 중',
-    dispensing: '로또볼 추첨 중',
+    dispensing: '미스터리볼 추첨 중',
     ready_to_open: '개봉 준비 완료',
     completed: '완료',
   }[ui.phase] ?? '대기 중'
   els.turnHint.textContent = canTurn
     ? '시계 방향으로 약 3/4바퀴 돌리면 추첨이 확정됩니다.'
     : ui.phase === 'dispensing' ? '투명 챔버에서 공이 섞이고, 한 개씩 추첨됩니다.'
-    : ui.phase === 'ready_to_open' ? '로또볼을 탭해 하나씩 열거나 모두 공개하세요.'
+    : ui.phase === 'ready_to_open' ? '미스터리볼을 탭해 열거나 모두 공개하세요.'
     : ui.phase === 'completed' ? '이번 추첨을 모두 공개했습니다. 다음 기계를 골라보세요.'
     : '결제 후 손잡이를 돌릴 수 있습니다.'
   els.wheel.classList.toggle('is-enabled', canTurn)
@@ -141,7 +142,7 @@ async function startDispensing(purchase) {
   ui.processing = false
   ui.phase = completedPurchase.status === 'completed' ? 'completed' : 'ready_to_open'
   render()
-  showToast('로또볼이 모두 나왔습니다. 하나씩 결과를 확인해보세요!')
+  showToast('미스터리볼이 모두 나왔습니다. 하나씩 결과를 확인해보세요!')
 }
 
 async function commitFromHandle() {
@@ -149,7 +150,7 @@ async function commitFromHandle() {
   ui.processing = true
   ui.phase = 'committing'
   render()
-  showToast('손잡이 완료! 로또 추첨기에서 공을 섞습니다.')
+  showToast('손잡이 완료! 추첨기에서 미스터리볼을 섞습니다.')
   await wait(440)
   try {
     const purchase = engine.commitDraw(ui.purchase.purchaseId)
@@ -171,7 +172,7 @@ async function revealOne(capsuleId) {
   ui.processing = true
   ui.purchase = engine.updateCapsule(ui.purchase.purchaseId, capsuleId, 'opening')
   render()
-  showToast('로또볼에서 등급 빛이 새어 나옵니다…')
+  showToast('미스터리볼이 위아래로 열립니다…')
   await wait(capsule.grade <= 2 ? 650 : 300)
   ui.purchase = engine.updateCapsule(ui.purchase.purchaseId, capsuleId, 'revealed')
   ui.processing = false
@@ -287,7 +288,7 @@ function resumeProgress() {
   } else if (ui.purchase.status === 'draw_committed') {
     ui.phase = 'ready_to_open'
     if (ui.purchase.capsules.some((capsule) => capsule.status === 'ready_to_dispense')) {
-      showToast('확정된 결과를 복원했습니다. 남은 로또볼을 이어서 추첨합니다.')
+      showToast('확정된 결과를 복원했습니다. 남은 미스터리볼을 이어서 추첨합니다.')
       startDispensing(ui.purchase)
     } else {
       showToast('이전 캡슐 진행 상태를 복원했습니다.')

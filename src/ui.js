@@ -44,7 +44,7 @@ export function createAppShell(app) {
         <div>
           <p class="eyebrow">ONLINE KUJI · CAPSULE EDITION</p>
           <h1>어떤 기계든<br /><em>같은 행운.</em></h1>
-          <p class="hero__copy">기계를 고르면 실제 매대처럼 전면에 나타납니다.<br />손잡이를 돌려 로또볼 추첨을 시작하세요.</p>
+          <p class="hero__copy">기계를 고르면 실제 매대처럼 전면에 나타납니다.<br />손잡이를 돌려 미스터리볼 추첨을 시작하세요.</p>
         </div>
         <div class="hero__counter">
           <span>남은 캡슐</span>
@@ -95,7 +95,7 @@ export function createAppShell(app) {
                 <div class="lotto-machine__dome"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
                 <div class="lotto-machine__neck"></div><div class="lotto-machine__gate"></div>
               </div>
-              <h3>손잡이를 돌리면<br /><em>로또볼이 나옵니다.</em></h3>
+              <h3>손잡이를 돌리면<br /><em>미스터리볼이 나옵니다.</em></h3>
               <div class="handle-stage">
                 <div id="machine-gear" class="machine-gear" aria-hidden="true">✣</div>
                 <div id="handle-wheel" class="handle-wheel" role="img" aria-label="가챠 손잡이. 시계 방향으로 드래그해 돌리세요." tabindex="0">
@@ -110,7 +110,7 @@ export function createAppShell(app) {
           </div>
         </div>
         <section class="lotto-results" aria-labelledby="lotto-results-heading">
-          <div class="lotto-results__heading"><div><p class="eyebrow">DRAW RESULTS</p><h3 id="lotto-results-heading">추첨된 로또볼</h3></div><button id="open-all" class="open-all" type="button" disabled>모두 공개</button></div>
+          <div class="lotto-results__heading"><div><p class="eyebrow">DRAW RESULTS</p><h3 id="lotto-results-heading">추첨 결과</h3></div><button id="open-all" class="open-all" type="button" disabled>모두 공개</button></div>
           <div id="capsule-area" class="lotto-results__balls" aria-live="polite"><p class="empty-capsules">손잡이를 돌리면 공이 이곳으로 굴러 나옵니다.</p></div>
         </section>
       </section>
@@ -160,13 +160,11 @@ export function renderCapsules(purchase) {
     const meta = GRADE_META[capsule.grade]
     const revealed = capsule.status === 'revealed'
     const opening = capsule.status === 'opening'
-    const lottoNumber = capsule.lottoNumber ?? index + 1
-    const tone = ['yellow', 'blue', 'red', 'green', 'purple'][lottoNumber % 5]
     return `
-      <button class="lotto-ball lotto-ball--${tone} ${revealed ? `is-revealed grade-${meta.className}` : ''} ${opening ? `is-opening grade-${meta.className}` : ''}" type="button" data-capsule-id="${capsule.capsuleId}" ${(revealed || opening) ? 'disabled' : ''}>
-        <span class="lotto-ball__sequence">DRAW ${String(index + 1).padStart(2, '0')}</span>
-        <span class="lotto-ball__orb"><b>${String(lottoNumber).padStart(2, '0')}</b></span>
-        <span class="lotto-ball__result">${revealed ? `${meta.label} · ${escapeHtml(capsule.prizeName)}` : opening ? '등급 확인 중…' : '공을 눌러 결과 확인'}</span>
+      <button class="lotto-ball mystery-ball ${revealed ? `is-revealed grade-${meta.className}` : ''} ${opening ? `is-opening grade-${meta.className}` : ''}" type="button" data-capsule-id="${capsule.capsuleId}" ${(revealed || opening) ? 'disabled' : ''}>
+        <span class="lotto-ball__sequence">RESULT ${String(index + 1).padStart(2, '0')}</span>
+        <span class="mystery-ball__shell" aria-hidden="true"><i class="mystery-ball__half mystery-ball__half--top"></i><i class="mystery-ball__half mystery-ball__half--bottom"></i><b>?</b><span class="mystery-ball__note">${revealed ? meta.label : '…'}</span></span>
+        <span class="lotto-ball__result">${revealed ? `${meta.label} · ${escapeHtml(capsule.prizeName)}` : opening ? '쪽지를 확인하는 중…' : '공을 눌러 결과 확인'}</span>
       </button>
     `
   }).join('')
