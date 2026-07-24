@@ -87,7 +87,7 @@ export function createAppShell(app) {
               </div>
               <p id="availability-note" class="availability-note"></p>
               <button id="purchase-button" class="purchase-button" type="button">연차를 선택해주세요</button>
-              <p class="payment-note">결제 뒤 손잡이를 끝까지 돌린 순간에만<br />남은 재고 기준으로 결과가 확정됩니다.</p>
+              <p class="payment-note">결제 뒤 손잡이를 끝까지 돌린 순간에만<br />남은 재고 기준으로 결과가 확정됩니다.<br />데모 재고는 새로고침하면 자동 리필됩니다.</p>
             </div>
 
             <div id="turn-panel" class="turn-panel" data-status="idle">

@@ -1,5 +1,3 @@
-const STORAGE_KEY = 'catcha-kuji-demo-state-v1'
-
 export const MACHINES = Object.freeze([
   {
     id: 'machine_mint',
@@ -81,26 +79,10 @@ function clone(value) {
   return JSON.parse(JSON.stringify(value))
 }
 
-function hasValidShape(value) {
-  return value && Array.isArray(value.inventory) && Array.isArray(value.purchases)
-}
-
 export function createInventoryStore() {
-  let state = load()
-
-  function load() {
-    try {
-      const saved = window.localStorage.getItem(STORAGE_KEY)
-      const parsed = saved ? JSON.parse(saved) : null
-      return hasValidShape(parsed) ? parsed : freshState()
-    } catch {
-      return freshState()
-    }
-  }
-
-  function save() {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-  }
+  // This is intentionally an in-memory demo store. Every page refresh starts
+  // a newly stocked round, so testing can continue even after stock is sold out.
+  let state = freshState()
 
   return {
     read() {
@@ -108,12 +90,10 @@ export function createInventoryStore() {
     },
     write(nextState) {
       state = clone(nextState)
-      save()
       return this.read()
     },
     reset() {
       state = freshState()
-      save()
       return this.read()
     },
   }
